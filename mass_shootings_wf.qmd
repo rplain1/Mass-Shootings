@@ -42,7 +42,6 @@ df <- list.files(path = 'data', pattern = 'shootings*') |>
 
 ```
 
-
 Taking csv data and visualizing 2023 growing faster than all other years since 204
 
 ```{r}
@@ -83,19 +82,3 @@ df_plot |>
   
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
