@@ -1,0 +1,101 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+library(tidyverse)
+```
+
+You can add options to executable code like this
+
+```{r}
+
+import_data <- function(filename) {
+  
+  df <- read_csv(paste0('data/',filename)) |> 
+    janitor::clean_names() |> 
+    mutate(incident_date = strptime(incident_date, "%B %d, %Y")) 
+  
+  if(!is.na(str_extract(filename, "2023"))) {
+    df <- df |> 
+      filter(year(incident_date) == 2023)
+  }
+  
+  return(df)
+  
+}
+
+
+df <- list.files(path = 'data', pattern = 'shootings*') |> 
+  map_dfr(import_data)
+
+
+```
+
+
+Taking csv data and visualizing 2023 growing faster than all other years since 204
+
+```{r}
+
+df_plot <- df |> 
+  filter(number_victims_killed > 0, !is.na(incident_date)) |> 
+  mutate(yday = yday(incident_date), year = year(incident_date)) |> 
+  summarise(
+    total = n(),
+    .by = c(yday, year)
+  ) |> 
+  mutate(cmap = case_when(
+    year == year(Sys.Date()) ~ '#931020',
+    year == year(Sys.Date()) - 1 ~ '#EA3449',
+    year == year(Sys.Date()) - 2 ~ '#F5A3AC',
+    TRUE ~ '#D1D1D1'
+  ),
+  order = case_when(
+    year == year(Sys.Date()) ~ 1,
+    year == year(Sys.Date()) - 1 ~ 2,
+    year == year(Sys.Date()) - 2 ~ 3,
+    TRUE ~ 4
+  )) |> 
+  group_by(year) |> 
+  arrange(yday) |>
+  mutate(cum_total = cumsum(total)) |> 
+  ungroup() |> 
+  arrange(year) 
+
+
+df_plot |> 
+  ggplot(aes(yday, cum_total, group = year, color = cmap)) +
+  geom_line() +
+  scale_color_identity(
+    guide = 'legend',
+    labels = c('2023', 'Before 2021', '2021', '2021')
+    )
+  
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
